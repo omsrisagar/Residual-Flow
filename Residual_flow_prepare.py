@@ -12,7 +12,9 @@ import argparse
 from torchvision import transforms
 from torch.autograd import Variable
 
-device = torch.device('cuda')
+# device = torch.device('cuda')
+# VS
+device = torch.device('cpu')
 
 parser = argparse.ArgumentParser(description='PyTorch code: Residual flow detector prepare')
 parser.add_argument('--batch_size', type=int, default=20, metavar='N', help='batch size for data loader')
@@ -54,7 +56,9 @@ def main():
     elif args.net_type  == 'resnet':
 
         model = models.ResNet34(num_c=args.num_classes)
-        model.load_state_dict(torch.load(pre_trained_net, map_location = "cuda:" + str(0)))
+        # model.load_state_dict(torch.load(pre_trained_net, map_location = "cuda:" + str(0)))
+        # VS
+        model.load_state_dict(torch.load(pre_trained_net, map_location = "cpu"))
         in_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),])
 
     if args.validation_src == 'FGSM':
@@ -79,7 +83,9 @@ def main():
     train_loader, test_loader = data_loader.getTargetDataSet(args.dataset, args.batch_size, in_transform, args.dataroot)
 
     # set information about feature extraction
-    temp_x = torch.rand(2, 3, 32, 32).cuda()
+    # temp_x = torch.rand(2, 3, 32, 32).cuda()
+    # VS
+    temp_x = torch.rand(2, 3, 32, 32)
     temp_x = Variable(temp_x)
     temp_list = model.feature_list(temp_x)[1]
     num_output = len(temp_list)
@@ -106,7 +112,9 @@ def main():
 
     for data, target in train_loader:
         total += data.size(0)
-        data = data.cuda()
+        # data = data.cuda()
+        # VS
+        # data = data.cuda()
         data = Variable(data, volatile=True)
         output, out_features = model.feature_list(data)
 
@@ -117,7 +125,9 @@ def main():
 
         # compute the accuracy
         pred = output.data.max(1)[1]
-        equal_flag = pred.eq(target.cuda()).cpu()
+        # equal_flag = pred.eq(target.cuda()).cpu()
+        # VS
+        equal_flag = pred.eq(target).cpu()
         correct += equal_flag.sum()
 
         # construct the sample matrix
@@ -138,7 +148,9 @@ def main():
     sample_class_mean = []
     out_count = 0
     for num_feature in feature_list:
-        temp_list = torch.Tensor(args.num_classes, int(num_feature)).cuda()
+        # temp_list = torch.Tensor(args.num_classes, int(num_feature)).cuda()
+        # VS
+        temp_list = torch.Tensor(args.num_classes, int(num_feature))
         for j in range(args.num_classes):
             temp_list[j] = torch.mean(list_features[out_count][j], 0)
         sample_class_mean.append(temp_list)
@@ -177,7 +189,9 @@ def main():
     num_sample_per_output.fill(0)
     for data, target in test_loader:
 
-        data = data.cuda()
+        # data = data.cuda()
+        # VS
+        # data = data.cuda()
         data = Variable(data, volatile=True)
         output, out_features = model.feature_list(data)
 
@@ -200,7 +214,9 @@ def main():
 
             for data in test_loader:
 
-                data = data.cuda()
+                # data = data.cuda()
+                # VS
+                # data = data.cuda()
                 data = Variable(data, volatile=True)
                 output, out_features = model.feature_list(data)
 
@@ -219,7 +235,9 @@ def main():
             num_sample_per_output.fill(0)
 
             for data in out_test_loader:
-                data = data.cuda()
+                # data = data.cuda()
+                # VS
+                # data = data.cuda()
                 data = Variable(data, requires_grad=True)
                 output, out_features = model.feature_list(data)
 
@@ -247,7 +265,8 @@ def main():
 
             for data, target in out_test_loader:
 
-                data, target = data.cuda(), target.cuda()
+                # VS
+                # data, target = data.cuda(), target.cuda()
                 data, target = Variable(data, requires_grad=True), Variable(target)
                 output, out_features = model.feature_list(data)
 
